@@ -71,10 +71,10 @@ class FunkSVD:
         '''
         # Input type <int>
         if isinstance(userId, int) and isinstance(itemId, int):
-            p = self._P[:,userId-1]
-            q = self._Q[:,itemId-1]
-            user_bias = self._user_bias[userId-1]
-            item_bias = self._item_bias[itemId-1]
+            p = self.user_latent_factors(userId)
+            q = self.item_latent_factors(itemId)
+            user_bias = self.user_bias(userId)
+            item_bias = self.item_bias(itemId)
             ratings = self._global_avg + user_bias + item_bias + np.dot(p,q)
             
         # Input type <numpy.ndarray> 
@@ -84,10 +84,10 @@ class FunkSVD:
                 raise Exception("User and item arrays should be the same size")    
             ratings = np.zeros(shape = userId.shape)
             for index in range(len(ratings)):
-                p = self._P[:, userId[index]-1]
-                q = self._Q[:, itemId[index]-1]
-                user_bias = self._user_bias[userId[index]-1]
-                item_bias = self._item_bias[itemId[index]-1]
+                p = self.user_latent_factors(userId[index])
+                q = self.user_latent_factors(itemId[index])
+                user_bias = self.user_bias(itemId[index])
+                item_bias = self.item_bias(userId[index])
                 ratings[index] = self._global_avg + user_bias + item_bias + np.dot(p,q)
                 
         elif isinstance(userId, pd.Series) and isinstance(itemId, pd.Series):
@@ -131,7 +131,23 @@ class FunkSVD:
         '''
         return None
 
+## Use primarily these to access parameters values in order to avoid unnecessary index errors:
+    
+    def user_latent_factors(self, userId):
+        return self._P[:,userId-1]
+        
+    def item_latent_factors(self, itemId):
+        return self._Q[:,itemId-1]
+    
+    def user_bias(self, userId):
+        return self._user_bias[userId-1]
+    
+    def item_bias(self, itemId):
+        return self._item_bias[itemId-1]
+    
     # ... and other public methods, feel free to add.
+    
+
     
     def _train_epoch(self, learning_rate, reg_coefficient):
         '''
@@ -157,10 +173,10 @@ class FunkSVD:
             rating = self._ratings[index]
             
             # Current parameters corresponding to the training instance
-            p = self._P[:,userId-1]
-            q = self._Q[:,itemId-1]
-            user_bias = self._user_bias[userId-1]
-            item_bias = self._item_bias[itemId-1]
+            p = self.user_latent_vector(userId)
+            q = self.item_latent_vector(itemId)
+            user_bias = self.user_bias(userId)
+            item_bias = self.item_bias(itemId)
             
             # Difference between predicted and real ratings
             dif = rating - self.predict(userId, itemId)
@@ -172,15 +188,5 @@ class FunkSVD:
             self._Q[:,itemId-1] = q + learning_rate*(dif*p - reg_coefficient*q)
         
         return None
-    
-    
-    ## TODO if needed
-    def _user_avg(self):
-        avg = self._global_avg * np.ones(shape = [self._n_users,])
-        return avg
-    
-    def _item_avg(self):
-        avg = self._global_avg * np.ones(shape = [self._n_items,])
-        return avg
     
     # ... other auxiliary private methods.
