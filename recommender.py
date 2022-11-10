@@ -77,25 +77,39 @@ class FunkSVD:
             item_bias = self.item_bias(itemId)
             ratings = self._global_avg + user_bias + item_bias + np.dot(p,q)
             
-        # Input type <numpy.ndarray> 
-        elif isinstance(userId, np.ndarray) and isinstance(itemId, np.ndarray):
+        # Input type <numpy.ndarray> or <pandas.Series>
+        else:
+            # Determine type and copy to numpy variables
+            if isinstance(userId, pd.Series) and isinstance(userId, pd.Series):
+                users = userId.toNumpy(dtype = int)
+                items = itemId.toNumpy(dtype = int)             
+            elif isinstance(userId, np.ndarray) and isinstance(userId, np.ndarray):
+                users = userId
+                items = itemId
+            else:
+                raise Exception("Invalid input type")
+                
             # Check that the arrays are of the same size
             if userId.shape != itemId.shape:
                 raise Exception("User and item arrays should be the same size")    
-            ratings = np.zeros(shape = userId.shape)
-            for index in range(len(ratings)):
-                p = self.user_latent_factors(userId[index])
-                q = self.item_latent_factors(itemId[index])
-                user_bias = self.user_bias(userId[index])
-                item_bias = self.item_bias(itemId[index])
-                ratings[index] = self._global_avg + user_bias + item_bias + np.dot(p,q)
-                
-        elif isinstance(userId, pd.Series) and isinstance(itemId, pd.Series):
-            #TODO
-            ratings = None
+            ratings_tmp = np.zeros(shape = userId.shape)
             
-        else:
-            raise Exception("Invalid input type")
+            # Compute the predictions
+            for index in range(len(ratings)):
+                p = self.user_latent_factors(users[index])
+                q = self.item_latent_factors(items[index])
+                user_bias = self.user_bias(users[index])
+                item_bias = self.item_bias(items[index])
+                ratings_tmp[index] = self._global_avg + user_bias + item_bias + np.dot(p,q)
+                
+            # Determine return type            
+            if isinstance(userId, np.ndarray) and isinstance(userId, np.ndarray):
+                ratings = ratings_tmp
+            elif isinstance(userId, pd.Series):
+                ratings = pd.DataFrame()
+                ratings["userId"] = users.toList()
+                ratings["itemId"] = items.toList()
+                ratings["rating"] = ratings_tmp.toList()
         return ratings
              
     
@@ -131,7 +145,8 @@ class FunkSVD:
         '''
         return None
 
-## Use primarily these to access parameters values in order to avoid unnecessary index errors:
+# Use these to access parameters values in order to avoid unnecessary index errors.
+# Only use indexing when modifying the parameter values.
     
     def user_latent_factors(self, userId):
         return self._P[:,userId-1]
