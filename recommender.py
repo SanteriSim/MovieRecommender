@@ -85,9 +85,9 @@ class FunkSVD:
             ratings = np.zeros(shape = userId.shape)
             for index in range(len(ratings)):
                 p = self.user_latent_factors(userId[index])
-                q = self.user_latent_factors(itemId[index])
-                user_bias = self.user_bias(itemId[index])
-                item_bias = self.item_bias(userId[index])
+                q = self.item_latent_factors(itemId[index])
+                user_bias = self.user_bias(userId[index])
+                item_bias = self.item_bias(itemId[index])
                 ratings[index] = self._global_avg + user_bias + item_bias + np.dot(p,q)
                 
         elif isinstance(userId, pd.Series) and isinstance(itemId, pd.Series):
@@ -173,8 +173,8 @@ class FunkSVD:
             rating = self._ratings[index]
             
             # Current parameters corresponding to the training instance
-            p = self.user_latent_vector(userId)
-            q = self.item_latent_vector(itemId)
+            p = self.user_latent_factors(userId)
+            q = self.item_latent_factors(itemId)
             user_bias = self.user_bias(userId)
             item_bias = self.item_bias(itemId)
             
