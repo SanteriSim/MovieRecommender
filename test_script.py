@@ -24,6 +24,7 @@ N_train = int(np.ceil(0.8*ratings_all.shape[0]))
 ratings_train = ratings_all[:N_train]
 ratings_test = ratings_all[N_train:]
 
+
 #%% Training the model, etc.
 
 model = Funk_SVD_recommender(ratings = ratings_train, num_LF = 20)
