@@ -24,12 +24,12 @@ n_items = max(ratings_all["itemId"])
 ratings_all = ratings_all.sample(frac = 1)
 
 #Divide into training set and test set. (Perhaps validation set also needed)
-n_train = int(np.ceil(0.05*ratings_all.shape[0]))
+n_train = int(np.ceil(0.8*ratings_all.shape[0]))
 
 ratings_train = ratings_all[:n_train]
 ratings_test = ratings_all[n_train:]
 #%%
 
 model = FunkSVD(ratings = ratings_train, n_latent_factors = 10, n_users = n_users, n_items = n_items)
-model.train(learning_rate = 0.01, reg_coefficient = 0.02)
-model.L2_error()
+model.train(learning_rate = 0.01, reg_coefficient = 0.02, max_epochs = 10)
+ratings_predicted = model.predict(ratings_test["userId"], ratings_test["itemId"])

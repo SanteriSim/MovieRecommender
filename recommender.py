@@ -41,7 +41,7 @@ class FunkSVD:
         self._item_bias = np.zeros(shape = [n_items,])
         
         
-    def train(self, learning_rate = 0.005, reg_coefficient = 0.02, tolerance = 1e-5, max_epochs = 100):
+    def train(self, learning_rate = 0.005, reg_coefficient = 0.02, max_epochs = 100):
         '''
         TODO. Trains the model using stochastic gradient descent.
         
@@ -85,8 +85,8 @@ class FunkSVD:
         else:
             # Determine type and copy to numpy variables
             if isinstance(userId, pd.Series) and isinstance(userId, pd.Series):
-                users = userId.toNumpy(dtype = np.int32)
-                items = itemId.toNumpy(dtype = np.int32)             
+                users = userId.to_numpy(dtype = np.int32)
+                items = itemId.to_numpy(dtype = np.int32)             
             elif isinstance(userId, np.ndarray) and isinstance(userId, np.ndarray):
                 users = userId
                 items = itemId
@@ -112,9 +112,9 @@ class FunkSVD:
                 ratings = ratings_tmp
             elif isinstance(userId, pd.Series):
                 ratings = pd.DataFrame()
-                ratings["userId"] = users.toList()
-                ratings["itemId"] = items.toList()
-                ratings["rating"] = ratings_tmp.toList()
+                ratings["userId"] = pd.Series(users)
+                ratings["itemId"] = pd.Series(items)
+                ratings["rating"] = pd.Series(ratings_tmp)
         return ratings
              
     
