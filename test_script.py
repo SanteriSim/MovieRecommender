@@ -31,5 +31,11 @@ ratings_test = ratings_all[n_train:]
 #%%
 
 model = FunkSVD(ratings = ratings_train, n_latent_factors = 10, n_users = n_users, n_items = n_items)
-model.train(learning_rate = 0.01, reg_coefficient = 0.02, max_epochs = 10)
+# reg 0.02 --> 0.01 Checking. Next up: 0.05
+model.train(learning_rate = 0.005, reg_coefficient = 0.1, n_epochs = 2)
+
 ratings_predicted = model.predict(ratings_test["userId"], ratings_test["itemId"])
+
+n_test = ratings_test.shape[0]
+mse = np.linalg.norm(ratings_predicted["rating"].to_numpy()-ratings_test["rating"].to_numpy())**2/n_test
+print(np.sqrt(mse))

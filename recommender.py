@@ -41,20 +41,19 @@ class FunkSVD:
         self._item_bias = np.zeros(shape = [n_items,])
         
         
-    def train(self, learning_rate = 0.005, reg_coefficient = 0.02, max_epochs = 100):
+    def train(self, learning_rate = 0.005, reg_coefficient = 0.02, n_epochs = 100):
         '''
         TODO. Trains the model using stochastic gradient descent.
         
         '''
         # Testing whether all works as expected
-        for epochs in range(max_epochs):
-            
+        loss = np.zeros(shape = [n_epochs,])
+        for epoch in range(n_epochs):
             self._train_epoch(learning_rate, reg_coefficient)
-            loss = self._loss(reg_coefficient)
-            err = self.L2_error()
-            print("Loss: {0:.3f}, error: {1:.3f}".format(loss, err))
-            
-            
+            loss[epoch] = self._loss(reg_coefficient)
+            err = self.RMSE()
+            print("Epoch: {0:d}, Loss: {1:.3f}, RMSE: {2:.3f}".format(epoch+1, loss[epoch], err))
+        
         return None
           
     def predict(self, userId, itemId):
@@ -116,42 +115,41 @@ class FunkSVD:
                 ratings["itemId"] = pd.Series(items)
                 ratings["rating"] = pd.Series(ratings_tmp)
         return ratings
-             
     
-    def L2_error(self):
+    def RMSE(self):
         '''
-        Calculates the L2 norm between the actual ratings and the current prediction
+        Calculates the root-mean-squared-error of the predicted ratings
         '''
         dif = self._ratings - self.predict(self._users, self._items)
-        err = np.linalg.norm(dif)
+        rmse = np.sqrt(np.sum(dif**2)/self._n_instances)
         
-        return err
-    
-    
-    def update_rating(self, rating, userId, itemId):
-        '''
-        Updates or adds a new rating to the rating matrix
+        return rmse
         
-        Parameters
-        ----------
-        rating : new rating to be added
-        user : user index
-        item : item index
+    def parameters(self):
+        '''
+        Returns the model parameters as a tuple.
         
-        '''
-        return None
-        
-    def remove_rating(self, userId, itemId):
-        '''
-        Parameters
-        ----------
-        user : user index
-        item : item index
-        '''
-        return None
+        Returns
+        -------
+        User latent factor matrix,
+        Item latent factor matrix,
+        User biases,
+        Item biases
 
-# Use these to access parameters values in order to avoid unnecessary index errors.
-# Only use indexing when modifying the parameter values.
+        '''
+        return self._P, self._Q, self._user_bias, self._item_bias
+    
+    def users(self):
+        return self._users
+    
+    def items(self):
+        return self._items
+    
+    def ratings(self):
+        return self._ratings
+
+    # Use these to access parameters values in order to avoid unnecessary index errors.
+    # Only use indexing when modifying the parameter values.
     
     def user_latent_factors(self, userId):
         return self._P[:,userId-1]
@@ -168,7 +166,6 @@ class FunkSVD:
     # ... and other public methods, feel free to add.
     
 
-    
     def _train_epoch(self, learning_rate, reg_coefficient):
         '''
         Trains the model with SGD by traversing through data once in randomized order.
@@ -210,10 +207,11 @@ class FunkSVD:
         return None
     
     def _loss(self, reg_coefficient):
-        err = self.L2_error()**2
+        dif = self._ratings - self.predict(self._users, self._items)
+        err = np.sum(dif**2)
         reg_bias = np.sum(self._user_bias**2) + np.sum(self._item_bias**2)
         reg_latent_factors = np.sum(self._P**2) + np.sum(self._Q**2)
-        loss = err + reg_coefficient*(reg_bias +  reg_latent_factors)
+        loss = err + reg_coefficient*(reg_bias + reg_latent_factors)
         return loss
             
         
