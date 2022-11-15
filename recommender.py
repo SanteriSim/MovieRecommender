@@ -118,7 +118,7 @@ class FunkSVD:
     
     def RMSE(self):
         '''
-        Calculates the root-mean-squared-error of the predicted ratings
+        Calculates the root-mean-squared error of the predicted ratings
         '''
         dif = self._ratings - self.predict(self._users, self._items)
         rmse = np.sqrt(np.sum(dif**2)/self._n_instances)
@@ -131,13 +131,58 @@ class FunkSVD:
         
         Returns
         -------
-        User latent factor matrix,
-        Item latent factor matrix,
-        User biases,
-        Item biases
+        User latent factor matrix as numpy.array,
+        Item latent factor matrix as numpy.array,
+        User biases as numpy.array,
+        Item biases as numpy.array
 
         '''
         return self._P, self._Q, self._user_bias, self._item_bias
+    
+    def initialize_parameters(self, P, Q, user_bias, item_bias, users = None, items = None):
+        '''
+        Initializes parameters with user input. 
+
+        Parameters
+        ----------
+        P : User latent factor matrix as numpy.array 
+        Q : Item latent factor matrix as numpy.array 
+        user_bias : User biases as numpy.array 
+        item_bias : Item biases as numpy.array 
+        
+        Optional: (Use these if there is a risk that the order of users and items
+                   in the parameters has changed from what the model was initialized with.)
+        users: corresponding userIds as numpy.array or pandas.Series
+        items: corresponding itemIds as numpy.array or pandas.Series
+        
+        Returns
+        -------
+        None.
+
+        '''
+        
+        self._P = P; self._Q = Q; 
+        self._user_bias = user_bias; self._item_bias = item_bias
+        
+        if users is None:
+            users_tmp = self._users
+        else:
+            if isinstance(users, pd.Series):
+                users_tmp = users.to_numpy()
+            else:
+                users_tmp = users
+        if items is None:
+            items_tmp = self._items
+        else:
+            if isinstance(items, pd.Series):
+                items_tmp = items.to_numpy()
+            else:
+                items_tmp = users
+                
+        self._users = users_tmp
+        self._items = items_tmp
+        
+        return None
     
     def users(self):
         return self._users
