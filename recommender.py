@@ -43,8 +43,16 @@ class FunkSVD:
         
     def train(self, learning_rate = 0.005, reg_coefficient = 0.02, n_epochs = 100):
         '''
-        TODO. Trains the model using stochastic gradient descent.
+        Trains the model using stochastic gradient descent.
         
+        Parameters
+        ----------
+        learning_rate : learning rate to be used in training
+        reg_coefficient : regularization coefficient
+
+        Returns
+        -------
+        loss : values for loss after each epoch as numpy.array
         '''
         # Testing whether all works as expected
         loss = np.zeros(shape = [n_epochs,])
@@ -54,7 +62,7 @@ class FunkSVD:
             err = self.RMSE()
             print("Epoch: {0:d}, Loss: {1:.3f}, RMSE: {2:.3f}".format(epoch+1, loss[epoch], err))
         
-        return None
+        return loss
           
     def predict(self, userId, itemId):
         '''
@@ -139,7 +147,7 @@ class FunkSVD:
         '''
         return self._P, self._Q, self._user_bias, self._item_bias
     
-    def initialize_parameters(self, P, Q, user_bias, item_bias, users = None, items = None):
+    def initialize_parameters(self, P, Q, user_bias, item_bias, ratings = None, users = None, items = None):
         '''
         Initializes parameters with user input. 
 
@@ -152,6 +160,7 @@ class FunkSVD:
         
         Optional: (Use these if there is a risk that the order of users and items
                    in the parameters has changed from what the model was initialized with.)
+        ratings: corresponding ratings as numpy.array  or pandas.Series
         users: corresponding userIds as numpy.array or pandas.Series
         items: corresponding itemIds as numpy.array or pandas.Series
         
@@ -163,7 +172,13 @@ class FunkSVD:
         
         self._P = P; self._Q = Q; 
         self._user_bias = user_bias; self._item_bias = item_bias
-        
+        if ratings is None:
+            ratings_tmp = self._ratings
+        else:
+            if isinstance(ratings, pd.Series):
+                ratings_tmp = ratings.to_numpy()
+            else:
+                ratings_tmp = ratings
         if users is None:
             users_tmp = self._users
         else:
@@ -178,10 +193,9 @@ class FunkSVD:
                 items_tmp = items.to_numpy()
             else:
                 items_tmp = users
-                
+        self._ratings = ratings_tmp
         self._users = users_tmp
         self._items = items_tmp
-        
         return None
     
     def users(self):
